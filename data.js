@@ -25,7 +25,8 @@ const CODEX = {
   upcomingChanges: [
     "Hide the 16 duplicate wool milling recipes from JEI's recipe list (clutter cleanup)",
     "Apply the stack upgrade tier pattern to tiers 2, 3, and 4 for Sophisticated Backpacks",
-    "Look into a config or workaround for Sable's magnet hose connector disconnecting on redstone power"
+    "Look into a config or workaround for Sable's magnet hose connector disconnecting on redstone power",
+    "Add recipe for logs into sticks without turning logs->planks->sticks"
   ],
   sections: [
     {
@@ -300,7 +301,24 @@ ServerEvents.recipes(event => {
                 "C": { name: "Iron Block", icon: "iron_block" }
               },
               note: "Direct tier 1 craft. Pattern continues for tiers 2–4 (apply same structure, scale up materials per tier)."
-            }
+            },
+            {
+              type: "shaped",
+              output: "Stack Upgrade: Tier 2",
+              id: "sophisticatedbackpacks:stack_upgrade_tier_2",
+              size: 3,
+              grid: [
+                "BCB",
+                "CAC",
+                "BCB"
+              ],
+              key: {
+                "A": { name: "Upgrade Base", icon: null },
+                "B": { name: "Gold Ingot", icon: "gold_ingot" },
+                "C": { name: "Gold Block", icon: "gold_block" }
+              },
+              note: "test"
+            },
           ]
         }
       ]
