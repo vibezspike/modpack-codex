@@ -205,6 +205,46 @@ body{
 }
 .sidebar-foot span{ color: var(--brass); font-family: var(--font-mono); font-weight:600; }
 
+.nav-leaf-standalone{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--line);
+  color: var(--brass);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  text-align: left;
+  padding: 9px 10px;
+  margin-top: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background .15s, border-color .15s;
+}
+.nav-leaf-standalone:hover{ background: var(--bg-panel-2); border-color: var(--brass); }
+.nav-leaf-standalone .count{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  font-weight: 400;
+}
+
+.section-upcoming .section-header{ border-bottom-color: var(--brass); }
+.upcoming-card{
+  border-style: dashed;
+  border-color: var(--line);
+}
+.upcoming-card ul{ padding-left: 22px; }
+.upcoming-card li{
+  color: var(--text-dim);
+  font-size: 14px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+.upcoming-card li::marker{ color: var(--brass); }
+
 .sidebar-toggle{
   display: none;
   position: fixed;
@@ -393,7 +433,7 @@ body{
 .cgrid.size-2{ grid-template-columns: repeat(2, 1fr); }
 
 .cslot{
-  width: 56px; height: 56px;
+  width: 68px; height: 68px;
   background: var(--bg-panel-2);
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -405,31 +445,23 @@ body{
   font-size: 9.5px;
   line-height: 1.2;
   color: var(--text-dim);
-  padding: 3px;
+  padding: 4px;
   position: relative;
 }
 .cslot.filled{
   border-color: var(--rust);
   color: var(--text);
   background: linear-gradient(160deg, var(--bg-panel-2), var(--bg-inset));
+  cursor: help;
 }
-.cslot.filled.has-icon{
-  flex-direction: column;
-  gap: 3px;
-  padding: 5px 2px 4px;
-}
-.cslot-label{
-  font-size: 8.5px;
-  line-height: 1.1;
-  display: block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.cslot-textonly{
+  font-size: 9.5px;
+  line-height: 1.2;
 }
 .item-icon{
   image-rendering: pixelated;
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
 }
 .item-icon.icon-pill{
@@ -468,6 +500,7 @@ body{
   align-items: center;
 }
 .io-pill.guaranteed{ border-color: var(--verdigris-dim); }
+.io-pill.has-icon{ cursor: help; }
 .io-pill .chance{
   color: var(--rust-bright);
   font-weight: 700;
