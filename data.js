@@ -23,7 +23,7 @@ const CODEX = {
   // Simple running list — just add a string per idea. No need for icons, grids, or recipe IDs here,
   // this section is meant for quick notes on things you're planning but haven't built yet.
   upcomingChanges: [
-    "",
+    "upload screenshots of all non-vanilla recipes to the /icons folder for the site to pull from",
     "Hide the 16 duplicate wool milling recipes from JEI's recipe list (clutter cleanup)",
     "Apply the stack upgrade tier pattern to tiers 2, 3, and 4 for Sophisticated Backpacks",
     "Look into a config or workaround for Sable's magnet hose connector disconnecting on redstone power",
@@ -60,7 +60,7 @@ const CODEX = {
                 "C": { name: "Cobblestone", icon: "cobblestone" },
                 "#": { name: "White Dye", icon: "white_dye" }
               },
-              note: "Checkered 2×2 pattern of cobblestone and white dye."
+              note: "Checkered 2x2 pattern of cobblestone and white dye."
             },
             {
               type: "shaped",
@@ -72,7 +72,7 @@ const CODEX = {
                 "D": { name: "Cobbled Deepslate", icon: "cobbled_deepslate" },
                 "#": { name: "Cobblestone", icon: "cobblestone" }
               },
-              note: "Checkered 2×2 pattern of cobbled deepslate and cobblestone."
+              note: "Checkered 2x2 pattern of cobbled deepslate and cobblestone."
             }
           ]
         }
@@ -92,7 +92,7 @@ const CODEX = {
               id: "minecraft:chest",
               size: 3,
               grid: ["LLL","L L","LLL"],
-              key: { "L": { name: "#minecraft:logs (any log)", icon: "oak_log" } },
+              key: { "L": { name: "any log", icon: "oak_log" } },
               note: "One-sweep chest recipe — accepts any log type via tag, mixed types allowed. Use #minecraft:logs_that_burn instead if you also want stripped logs / wood blocks to count."
             }
           ]
@@ -113,10 +113,10 @@ const CODEX = {
               id: "create:milling/poppy",
               flowInput: { text: "Poppy", icon: "poppy" },
               flowOutputs: [
-                { text: "Red Dye", qty: "×1", guaranteed: true, icon: "red_dye" },
+                { text: "Red Dye", qty: "x1", guaranteed: true, icon: "red_dye" },
                 { text: "Green Dye", chance: "15%", icon: "green_dye" }
               ],
-              note: "Required installing CreateKubeJS for the createMilling recipe type to exist. Chance items use CreateItem.of(item, chance) — the old Item.of().withChance() syntax was removed in 1.21.",
+              note: "Changed the odds of getting green dye from poppies to 15% instead of the default.",
               code: `event.remove({ id: 'create:milling/poppy' })
 
 event.recipes.createMilling([
