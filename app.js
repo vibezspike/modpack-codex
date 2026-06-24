@@ -70,6 +70,18 @@
     // open first group by default
     const first = navScroll.querySelector('.nav-group');
     if (first) first.classList.add('open');
+
+    // standalone link to the Upcoming Changes section at the bottom of the page
+    if (Array.isArray(CODEX.upcomingChanges) && CODEX.upcomingChanges.length){
+      const upcomingBtn = document.createElement('button');
+      upcomingBtn.className = 'nav-leaf nav-leaf-standalone';
+      upcomingBtn.innerHTML = `<span>Upcoming Changes</span> <span class="count">${CODEX.upcomingChanges.length}</span>`;
+      upcomingBtn.addEventListener('click', () => {
+        document.getElementById('section-upcoming')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (window.innerWidth <= 880) sidebar.classList.remove('open');
+      });
+      navScroll.appendChild(upcomingBtn);
+    }
   }
 
   // ---------- icon helper ----------
@@ -97,10 +109,8 @@
         const name = typeof entry === 'string' ? entry : entry.name;
         const icon = typeof entry === 'string' ? null : entry.icon;
         const img = iconImgHtml(icon, name, 'icon-slot');
-        const labelHtml = img
-          ? `${img}<span class="cslot-label">${escapeHtml(name)}</span>`
-          : escapeHtml(name);
-        html += `<div class="cslot filled ${img ? 'has-icon' : ''}">${labelHtml}</div>`;
+        const inner = img ? img : `<span class="cslot-textonly">${escapeHtml(name)}</span>`;
+        html += `<div class="cslot filled ${img ? 'has-icon' : ''}" title="${escapeHtml(name)}">${inner}</div>`;
       }
     });
     html += `</div>`;
@@ -112,18 +122,20 @@
     const inputText = typeof input === 'string' ? input : input.text;
     const inputIcon = typeof input === 'string' ? null : input.icon;
     const inputImg = iconImgHtml(inputIcon, inputText, 'icon-pill');
+    const inputInner = inputImg ? inputImg : `<span>${escapeHtml(inputText)}</span>`;
 
     let html = `<div class="flow-row">`;
-    html += `<div class="io-pill-group"><div class="io-pill guaranteed ${inputImg?'has-icon':''}">${inputImg}<span>${escapeHtml(inputText)}</span></div></div>`;
+    html += `<div class="io-pill-group"><div class="io-pill guaranteed ${inputImg?'has-icon':''}" title="${escapeHtml(inputText)}">${inputInner}</div></div>`;
     html += `<div class="flow-arrow">→</div>`;
     html += `<div class="io-pill-group">`;
     recipe.flowOutputs.forEach(o => {
       const cls = o.guaranteed ? 'io-pill guaranteed' : 'io-pill';
       const img = iconImgHtml(o.icon, o.text, 'icon-pill');
-      let label = `<span>${escapeHtml(o.text)}</span>`;
-      if (o.qty) label += ` <span class="qty">${escapeHtml(o.qty)}</span>`;
-      if (o.chance) label += ` <span class="chance">${escapeHtml(o.chance)}</span>`;
-      html += `<div class="${cls} ${img?'has-icon':''}">${img}${label}</div>`;
+      const nameHtml = img ? '' : `<span>${escapeHtml(o.text)}</span>`;
+      let extras = '';
+      if (o.qty) extras += ` <span class="qty">${escapeHtml(o.qty)}</span>`;
+      if (o.chance) extras += ` <span class="chance">${escapeHtml(o.chance)}</span>`;
+      html += `<div class="${cls} ${img?'has-icon':''}" title="${escapeHtml(o.text)}">${img}${nameHtml}${extras}</div>`;
     });
     html += `</div></div>`;
     return html;
@@ -226,6 +238,26 @@
       section.innerHTML = html;
       content.appendChild(section);
     });
+
+    // ---- Upcoming Changes — always last, always at the bottom ----
+    if (Array.isArray(CODEX.upcomingChanges) && CODEX.upcomingChanges.length){
+      const section = document.createElement('section');
+      section.className = 'section section-upcoming';
+      section.id = 'section-upcoming';
+
+      let items = CODEX.upcomingChanges.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+
+      section.innerHTML = `
+        <div class="section-header">
+          <h2 class="section-title">Upcoming Changes</h2>
+          <span class="section-eyebrow">Not Built Yet</span>
+        </div>
+        <div class="list-card upcoming-card">
+          <ul>${items}</ul>
+        </div>`;
+
+      content.appendChild(section);
+    }
   }
 
   // ---------- search filter ----------
