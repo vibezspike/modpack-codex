@@ -40,7 +40,7 @@ const CODEX = {
           recipes: [
             {
               type: "shaped",
-              output: "Granite ×8",
+              output: "Granite x8",
               id: "kubejs:granite",
               size: 3,
               grid: ["CCC","C#C","CCC"],
@@ -52,7 +52,7 @@ const CODEX = {
             },
             {
               type: "shaped",
-              output: "Diorite ×4",
+              output: "Diorite x4",
               id: "kubejs:diorite",
               size: 2,
               grid: ["C#","#C"],
@@ -64,7 +64,7 @@ const CODEX = {
             },
             {
               type: "shaped",
-              output: "Tuff ×4",
+              output: "Tuff x4",
               id: "kubejs:tuff",
               size: 2,
               grid: ["D#","#D"],
@@ -126,11 +126,11 @@ event.recipes.createMilling([
             },
             {
               type: "milling",
-              output: "String ×4",
-              id: "create:milling/[color]_wool (×16 colors)",
+              output: "String x4",
+              id: "create:milling/[color]_wool (x16 colors)",
               flowInput: { text: "Wool (any of 16 colors)", icon: "white_wool" },
               flowOutputs: [
-                { text: "String", qty: "×4", guaranteed: true, icon: "string" }
+                { text: "String", qty: "x4", guaranteed: true, icon: "string" }
               ],
               note: "Tags aren't accepted as milling input, so this is looped across all 16 wool color IDs individually. This clutters JEI's recipe list — consider hiding the duplicate entries via a JEIEvents.hideRecipes client script if it gets annoying.",
               code: `[
@@ -182,11 +182,11 @@ event.recipes.createCrushing([
             },
             {
               type: "splashing",
-              output: "Raw Zinc ×4 (guaranteed) + Zinc Nugget (chance)",
+              output: "Raw Zinc x4 (guaranteed) + Zinc Nugget (chance)",
               id: "create:splashing/crushed_raw_zinc",
               flowInput: { text: "Crushed Raw Zinc", icon: null },
               flowOutputs: [
-                { text: "Raw Zinc", qty: "×4", guaranteed: true, icon: null },
+                { text: "Raw Zinc", qty: "x4", guaranteed: true, icon: null },
                 { text: "Zinc Nugget", chance: "25%", icon: null }
               ],
               note: "Quantity prefix (e.g. '4x minecraft:raw_zinc') works the same in Create recipe arrays as it does in vanilla shaped/shapeless recipes."
@@ -204,33 +204,15 @@ event.recipes.createCrushing([
           title: null,
           recipes: [
             {
-              type: "shapeless",
-              output: "Special Stick",
-              id: "kubejs:special_stick",
-              flowInput: { text: "2× Stick", icon: "stick" },
-              flowOutputs: [{ text: "Special Stick", guaranteed: true, icon: null }],
-              note: "Plain custom item with no functional use beyond being a crafting ingredient for other mods/configs. Registered in startup_scripts (item registration must happen at startup, not in server_scripts). Needs a 16×16 PNG at kubejs/assets/kubejs/textures/item/special_stick.png or it renders as the missing-texture checkerboard.",
-              code: `// startup_scripts
-StartupEvents.registry('item', event => {
-  event.create('special_stick')
-    .displayName('Special Stick')
-    .maxStackSize(64)
-})
-
-// server_scripts
-ServerEvents.recipes(event => {
-  event.shapeless('kubejs:special_stick', [
-    'minecraft:stick',
-    'minecraft:stick'
-  ])
-})`
-            },
-            {
               type: "shaped",
               output: "Litematica Stick",
               id: "kubejs:litematica_stick",
               size: 3,
-              grid: [" P "," P "," P "],
+              grid: [
+                " P ",
+                " P ",
+                " P "
+              ],
               key: { "P": { name: "#minecraft:planks", icon: "oak_planks" } },
               note: "Used to fix a typo where event.shapeed (extra 'e') was used instead of event.shaped — that silent-fail/typo pattern is worth remembering since KubeJS won't always throw an obvious error for it.",
               configId: "kubejs:litematica_stick — use this exact string when referencing the item in a mod's config file (namespace:item_name)."
