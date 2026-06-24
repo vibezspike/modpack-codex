@@ -1,571 +1,340 @@
-:root{
-  --bg: #161412;
-  --bg-panel: #211e1a;
-  --bg-panel-2: #2a2620;
-  --bg-inset: #131110;
-  --line: #3a352c;
-  --line-soft: #2c2820;
-  --text: #e8dcc8;
-  --text-dim: #a89a82;
-  --text-faint: #6e6453;
-  --rust: #c2622f;
-  --rust-bright: #e8793f;
-  --verdigris: #5a9384;
-  --verdigris-dim: #3f6a5f;
-  --brass: #c9a35c;
-  --danger: #c2462f;
+// All data describing the recipe changes made throughout modpack development.
+// Edit this file directly to add new recipes later — no need to touch app.js or index.html.
+//
+// ICONS: item/block images are pulled live from a public Minecraft asset mirror on jsDelivr.
+// For vanilla items just set `icon` to the item's internal ID, e.g. "cobblestone", "white_dye".
+// The site automatically tries /textures/item/<icon>.png then falls back to /textures/block/<icon>.png.
+// For custom/modded items with no vanilla art (Create, Sophisticated Backpacks, your own KubeJS items),
+// just omit `icon` (or leave it null) and the slot will show text instead — there's no public art source
+// for those, so a manual screenshot is the only real option if you want an image for them.
 
-  --font-display: "Big Shoulders Display", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-  --font-body: "Inter", sans-serif;
-}
+const MC_ICON_VERSION = "1.21.1";
+const MC_ICON_BASE = `https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@${MC_ICON_VERSION}/assets/minecraft/textures`;
 
-*{ box-sizing: border-box; }
-html,body{ margin:0; padding:0; }
-
-body{
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
+function mcIconUrls(iconName){
+  if (!iconName) return null;
+  return [
+    `${MC_ICON_BASE}/item/${iconName}.png`,
+    `${MC_ICON_BASE}/block/${iconName}.png`
+  ];
 }
 
-.rivets-top{
-  position: fixed;
-  top:0; left:0; right:0;
-  height: 4px;
-  background: repeating-linear-gradient(90deg, var(--rust) 0 2px, transparent 2px 28px);
-  z-index: 50;
-  opacity: .55;
-}
+const CODEX = {
+  // Simple running list — just add a string per idea. No need for icons, grids, or recipe IDs here,
+  // this section is meant for quick notes on things you're planning but haven't built yet.
+  upcomingChanges: [
+    "Hide the 16 duplicate wool milling recipes from JEI's recipe list (clutter cleanup)",
+    "Apply the stack upgrade tier pattern to tiers 2, 3, and 4 for Sophisticated Backpacks",
+    "Look into a config or workaround for Sable's magnet hose connector disconnecting on redstone power"
+  ],
+  sections: [
+    {
+      id: "stone",
+      title: "Stone Recipes",
+      eyebrow: "World Gen Blocks",
+      subsections: [
+        {
+          title: null,
+          recipes: [
+            {
+              type: "shaped",
+              output: "Granite ×8",
+              id: "kubejs:granite",
+              size: 3,
+              grid: ["CCC","C#C","CCC"],
+              key: {
+                "C": { name: "Cobblestone", icon: "cobblestone" },
+                "#": { name: "Coal", icon: "coal" }
+              },
+              note: "8 cobblestone surrounding a coal in the center. Yields 8 granite per craft."
+            },
+            {
+              type: "shaped",
+              output: "Diorite ×4",
+              id: "kubejs:diorite",
+              size: 2,
+              grid: ["C#","#C"],
+              key: {
+                "C": { name: "Cobblestone", icon: "cobblestone" },
+                "#": { name: "White Dye", icon: "white_dye" }
+              },
+              note: "Checkered 2×2 pattern of cobblestone and white dye."
+            },
+            {
+              type: "shaped",
+              output: "Tuff ×4",
+              id: "kubejs:tuff",
+              size: 2,
+              grid: ["D#","#D"],
+              key: {
+                "D": { name: "Cobbled Deepslate", icon: "cobbled_deepslate" },
+                "#": { name: "Cobblestone", icon: "cobblestone" }
+              },
+              note: "Checkered 2×2 pattern of cobbled deepslate and cobblestone."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "wood",
+      title: "Wooden Recipes",
+      eyebrow: "Logs & Lumber",
+      subsections: [
+        {
+          title: null,
+          recipes: [
+            {
+              type: "shaped",
+              output: "Chest",
+              id: "minecraft:chest",
+              size: 3,
+              grid: ["LLL","L L","LLL"],
+              key: { "L": { name: "#minecraft:logs (any log)", icon: "oak_log" } },
+              note: "One-sweep chest recipe — accepts any log type via tag, mixed types allowed. Use #minecraft:logs_that_burn instead if you also want stripped logs / wood blocks to count."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "create",
+      title: "Create Recipes",
+      eyebrow: "Milling · Crushing · Splashing",
+      subsections: [
+        {
+          title: "Milling",
+          recipes: [
+            {
+              type: "milling",
+              output: "Red Dye (guaranteed) + Green Dye (chance)",
+              id: "create:milling/poppy",
+              flowInput: { text: "Poppy", icon: "poppy" },
+              flowOutputs: [
+                { text: "Red Dye", qty: "×1", guaranteed: true, icon: "red_dye" },
+                { text: "Green Dye", chance: "15%", icon: "green_dye" }
+              ],
+              note: "Required installing CreateKubeJS for the createMilling recipe type to exist. Chance items use CreateItem.of(item, chance) — the old Item.of().withChance() syntax was removed in 1.21.",
+              code: `event.remove({ id: 'create:milling/poppy' })
 
-/* ===== Layout ===== */
-.app{
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  min-height: 100vh;
-}
+event.recipes.createMilling([
+  'minecraft:red_dye',
+  CreateItem.of('minecraft:green_dye', 0.15)
+], 'minecraft:poppy')`
+            },
+            {
+              type: "milling",
+              output: "String ×4",
+              id: "create:milling/[color]_wool (×16 colors)",
+              flowInput: { text: "Wool (any of 16 colors)", icon: "white_wool" },
+              flowOutputs: [
+                { text: "String", qty: "×4", guaranteed: true, icon: "string" }
+              ],
+              note: "Tags aren't accepted as milling input, so this is looped across all 16 wool color IDs individually. This clutters JEI's recipe list — consider hiding the duplicate entries via a JEIEvents.hideRecipes client script if it gets annoying.",
+              code: `[
+  'minecraft:white_wool', 'minecraft:orange_wool', /* ...all 16 colors */
+].forEach(wool => {
+  event.remove({ output: 'minecraft:string', input: wool })
+  event.recipes.createMilling(['4x minecraft:string'], wool)
+})`
+            }
+          ]
+        },
+        {
+          title: "Crushing",
+          recipes: [
+            {
+              type: "crushing",
+              output: "Iron Ingot (guaranteed) + Iron Nugget (chance) + Gold Nugget (chance)",
+              id: "create:crushing/raw_iron",
+              flowInput: { text: "Raw Iron", icon: "raw_iron" },
+              flowOutputs: [
+                { text: "Iron Ingot", guaranteed: true, icon: "iron_ingot" },
+                { text: "Iron Nugget", chance: "50%", icon: "iron_nugget" },
+                { text: "Gold Nugget", chance: "25%", icon: "gold_nugget" }
+              ],
+              note: "Pattern for stacking multiple chance outputs: guaranteed item(s) first in the array, then as many CreateItem.of(item, chance) entries as needed.",
+              code: `event.remove({ id: 'create:crushing/raw_iron' })
 
-@media (max-width: 880px){
-  .app{ grid-template-columns: 1fr; }
-}
+event.recipes.createCrushing([
+  'minecraft:iron_ingot',
+  CreateItem.of('minecraft:iron_nugget', 0.5),
+  CreateItem.of('minecraft:gold_nugget', 0.25)
+], 'minecraft:raw_iron')`
+            }
+          ]
+        },
+        {
+          title: "Splashing (Washing)",
+          recipes: [
+            {
+              type: "splashing",
+              output: "Iron Nugget (chance)",
+              id: "create:splashing/gravel",
+              flowInput: { text: "Gravel", icon: "gravel" },
+              flowOutputs: [
+                { text: "Flint", guaranteed: true, icon: "flint" },
+                { text: "Iron Nugget", chance: "25%", icon: "iron_nugget" }
+              ],
+              note: "Same array-order rule as crushing/milling: guaranteed outputs first, chance outputs via CreateItem.of()."
+            },
+            {
+              type: "splashing",
+              output: "Raw Zinc ×4 (guaranteed) + Zinc Nugget (chance)",
+              id: "create:splashing/crushed_raw_zinc",
+              flowInput: { text: "Crushed Raw Zinc", icon: null },
+              flowOutputs: [
+                { text: "Raw Zinc", qty: "×4", guaranteed: true, icon: null },
+                { text: "Zinc Nugget", chance: "25%", icon: null }
+              ],
+              note: "Quantity prefix (e.g. '4x minecraft:raw_zinc') works the same in Create recipe arrays as it does in vanilla shaped/shapeless recipes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "custom-items",
+      title: "Custom Items & Recipes",
+      eyebrow: "KubeJS-Registered Items",
+      subsections: [
+        {
+          title: null,
+          recipes: [
+            {
+              type: "shapeless",
+              output: "Special Stick",
+              id: "kubejs:special_stick",
+              flowInput: { text: "2× Stick", icon: "stick" },
+              flowOutputs: [{ text: "Special Stick", guaranteed: true, icon: null }],
+              note: "Plain custom item with no functional use beyond being a crafting ingredient for other mods/configs. Registered in startup_scripts (item registration must happen at startup, not in server_scripts). Needs a 16×16 PNG at kubejs/assets/kubejs/textures/item/special_stick.png or it renders as the missing-texture checkerboard.",
+              code: `// startup_scripts
+StartupEvents.registry('item', event => {
+  event.create('special_stick')
+    .displayName('Special Stick')
+    .maxStackSize(64)
+})
 
-/* ===== Sidebar ===== */
-.sidebar{
-  background: var(--bg-panel);
-  border-right: 1px solid var(--line);
-  position: sticky;
-  top:0;
-  height: 100vh;
-  display:flex;
-  flex-direction: column;
-  padding: 22px 18px;
-}
-
-@media (max-width: 880px){
-  .sidebar{
-    position: fixed;
-    left:0; top:0;
-    z-index: 40;
-    width: 280px;
-    transform: translateX(-100%);
-    transition: transform .25s ease;
-    box-shadow: 20px 0 40px rgba(0,0,0,.4);
-  }
-  .sidebar.open{ transform: translateX(0); }
-}
-
-.sidebar-head{
-  display:flex;
-  align-items:center;
-  gap: 12px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--line-soft);
-  margin-bottom: 16px;
-}
-
-.sidebar-mark{
-  width: 38px; height:38px;
-  border-radius: 8px;
-  background: linear-gradient(155deg, var(--rust), #8a3f1f);
-  display:flex; align-items:center; justify-content:center;
-  font-size: 20px;
-  color: #1c1410;
-  flex-shrink:0;
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,.25), 0 2px 6px rgba(0,0,0,.4);
-}
-
-.sidebar-title{
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 17px;
-  letter-spacing: .04em;
-  line-height: 1;
-  color: var(--text);
-}
-.sidebar-sub{
-  font-size: 11px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  margin-top: 3px;
-}
-
-.search-box{
-  width: 100%;
-  background: var(--bg-inset);
-  border: 1px solid var(--line);
-  color: var(--text);
-  padding: 10px 12px;
-  border-radius: 6px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  margin-bottom: 16px;
-  outline: none;
-}
-.search-box::placeholder{ color: var(--text-faint); }
-.search-box:focus{ border-color: var(--rust); }
-
-.nav-scroll{
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-.nav-scroll::-webkit-scrollbar{ width: 6px; }
-.nav-scroll::-webkit-scrollbar-thumb{ background: var(--line); border-radius: 3px; }
-
-.nav-group{ margin-bottom: 4px; }
-
-.nav-group-btn{
-  width: 100%;
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 8px;
-  background: none;
-  border: none;
-  color: var(--text);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 14.5px;
-  letter-spacing: .02em;
-  text-align: left;
-  padding: 10px 8px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background .15s;
-}
-.nav-group-btn:hover{ background: var(--bg-panel-2); }
-.nav-group-btn .count{
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-faint);
-  font-weight: 400;
-}
-.nav-group-btn .chev{
-  font-size: 11px;
-  color: var(--rust);
-  transition: transform .18s;
-  flex-shrink:0;
-}
-.nav-group.open .chev{ transform: rotate(90deg); }
-
-.nav-children{
-  display: none;
-  padding-left: 14px;
-  border-left: 1px solid var(--line-soft);
-  margin-left: 14px;
-}
-.nav-group.open .nav-children{ display: block; }
-
-.nav-leaf{
-  display:block;
-  width: 100%;
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-family: var(--font-body);
-  font-size: 13px;
-  text-align: left;
-  padding: 7px 8px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background .15s, color .15s;
-}
-.nav-leaf:hover{ background: var(--bg-panel-2); color: var(--text); }
-.nav-leaf.active{ color: var(--rust-bright); background: var(--bg-panel-2); font-weight: 600; }
-
-.sidebar-foot{
-  border-top: 1px solid var(--line-soft);
-  padding-top: 14px;
-  font-size: 11px;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-.sidebar-foot span{ color: var(--brass); font-family: var(--font-mono); font-weight:600; }
-
-.nav-leaf-standalone{
-  display:flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  background: none;
-  border: 1px dashed var(--line);
-  color: var(--brass);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 13.5px;
-  text-align: left;
-  padding: 9px 10px;
-  margin-top: 14px;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background .15s, border-color .15s;
-}
-.nav-leaf-standalone:hover{ background: var(--bg-panel-2); border-color: var(--brass); }
-.nav-leaf-standalone .count{
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-faint);
-  font-weight: 400;
-}
-
-.section-upcoming .section-header{ border-bottom-color: var(--brass); }
-.upcoming-card{
-  border-style: dashed;
-  border-color: var(--line);
-}
-.upcoming-card ul{ padding-left: 22px; }
-.upcoming-card li{
-  color: var(--text-dim);
-  font-size: 14px;
-  margin-bottom: 10px;
-  line-height: 1.5;
-}
-.upcoming-card li::marker{ color: var(--brass); }
-
-.sidebar-toggle{
-  display: none;
-  position: fixed;
-  top: 16px; left: 16px;
-  z-index: 41;
-  width: 42px; height: 42px;
-  background: var(--bg-panel);
-  border: 1px solid var(--line);
-  color: var(--text);
-  border-radius: 8px;
-  font-size: 17px;
-  cursor: pointer;
-}
-@media (max-width: 880px){ .sidebar-toggle{ display:flex; align-items:center; justify-content:center; } }
-
-/* ===== Main ===== */
-.main{ min-width: 0; }
-
-.hero{
-  padding: 56px 48px 40px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 40px;
-  background:
-    radial-gradient(circle at 85% 20%, rgba(194,98,47,.10), transparent 55%),
-    var(--bg);
-}
-@media (max-width: 880px){
-  .hero{ padding: 70px 24px 32px; flex-direction: column; align-items: flex-start; }
-}
-@media (max-width: 600px){
-  .hero-gauge{ display:none; }
-}
-
-.hero-eyebrow{
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--verdigris);
-  letter-spacing: .14em;
-  margin-bottom: 14px;
-}
-
-.hero-title{
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: clamp(30px, 4.2vw, 50px);
-  line-height: 1.04;
-  margin: 0 0 16px;
-  color: var(--text);
-}
-
-.hero-desc{
-  max-width: 540px;
-  color: var(--text-dim);
-  font-size: 15px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.gauge-svg{ width: 150px; height: 150px; flex-shrink:0; }
-.gauge-ring-bg{ fill:none; stroke: var(--line-soft); stroke-width: 9; }
-.gauge-ring-fg{
-  fill:none; stroke: var(--rust); stroke-width: 9; stroke-linecap: round;
-  stroke-dasharray: 540; stroke-dashoffset: 540;
-  transform: rotate(-90deg); transform-origin: 100px 100px;
-  transition: stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1);
-}
-.gauge-num{
-  font-family: var(--font-display); font-weight: 800; font-size: 46px;
-  fill: var(--text); text-anchor: middle;
-}
-.gauge-label{
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em;
-  fill: var(--text-faint); text-anchor: middle;
-}
-
-#content{ padding: 40px 48px 100px; }
-@media (max-width: 880px){ #content{ padding: 32px 22px 80px; } }
-
-.section{ margin-bottom: 56px; scroll-margin-top: 20px; }
-
-.section-header{
-  display:flex;
-  align-items: baseline;
-  gap: 14px;
-  margin-bottom: 4px;
-  padding-bottom: 14px;
-  border-bottom: 2px solid var(--rust);
-}
-.section-eyebrow{
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-faint);
-}
-.section-title{
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 28px;
-  color: var(--text);
-  margin: 0;
-}
-
-.subsection-title{
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--verdigris);
-  margin: 32px 0 16px;
-  padding-left: 12px;
-  border-left: 3px solid var(--verdigris);
-}
-
-.recipe-grid-wrap{
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 18px;
-  margin-top: 18px;
-}
-
-.card{
-  background: var(--bg-panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 18px;
-  position: relative;
-  overflow: hidden;
-}
-.card::before{
-  content:"";
-  position:absolute; top:0; left:0; right:0; height: 3px;
-  background: linear-gradient(90deg, var(--rust), transparent 70%);
-}
-
-.card-head{
-  display:flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.card-title{
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--text);
-  line-height: 1.3;
-}
-.card-badge{
-  font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  padding: 3px 8px;
-  border-radius: 4px;
-  background: var(--bg-inset);
-  color: var(--brass);
-  white-space: nowrap;
-  flex-shrink: 0;
-  border: 1px solid var(--line);
-}
-.card-badge.machine-milling{ color: #d9b46a; }
-.card-badge.machine-splashing{ color: var(--verdigris); }
-.card-badge.machine-crushing{ color: var(--rust-bright); }
-.card-badge.machine-shaped, .card-badge.machine-shapeless{ color: #9bb3d9; }
-.card-badge.machine-break{ color: var(--danger); }
-
-.card-id{
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-faint);
-  margin-bottom: 14px;
-  word-break: break-all;
-}
-
-/* crafting grid widget */
-.cgrid{
-  display: inline-grid;
-  gap: 4px;
-  background: var(--bg-inset);
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid var(--line);
-}
-.cgrid.size-3{ grid-template-columns: repeat(3, 1fr); }
-.cgrid.size-2{ grid-template-columns: repeat(2, 1fr); }
-
-.cslot{
-  width: 68px; height: 68px;
-  background: var(--bg-panel-2);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  line-height: 1.2;
-  color: var(--text-dim);
-  padding: 4px;
-  position: relative;
-}
-.cslot.filled{
-  border-color: var(--rust);
-  color: var(--text);
-  background: linear-gradient(160deg, var(--bg-panel-2), var(--bg-inset));
-  cursor: help;
-}
-.cslot-textonly{
-  font-size: 9.5px;
-  line-height: 1.2;
-}
-.item-icon{
-  image-rendering: pixelated;
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-}
-.item-icon.icon-pill{
-  width: 18px;
-  height: 18px;
-  vertical-align: middle;
-  margin-right: 2px;
-}
-.cslot.empty{ opacity: .25; }
-
-.flow-row{
-  display:flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-.flow-arrow{
-  color: var(--rust);
-  font-size: 22px;
-  flex-shrink: 0;
-}
-.io-pill-group{
-  display:flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.io-pill{
-  font-family: var(--font-mono);
-  font-size: 12px;
-  background: var(--bg-inset);
-  border: 1px solid var(--line);
-  padding: 6px 10px;
-  border-radius: 5px;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-}
-.io-pill.guaranteed{ border-color: var(--verdigris-dim); }
-.io-pill.has-icon{ cursor: help; }
-.io-pill .chance{
-  color: var(--rust-bright);
-  font-weight: 700;
-  margin-left: 6px;
-}
-.io-pill .qty{
-  color: var(--brass);
-  font-weight: 700;
-}
-
-.card-note{
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line-soft);
-  font-size: 12.5px;
-  color: var(--text-dim);
-  line-height: 1.5;
-}
-
-.tag-pill{
-  display:inline-block;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  background: rgba(90,147,132,.15);
-  color: var(--verdigris);
-  padding: 2px 7px;
-  border-radius: 4px;
-}
-
-.code-block{
-  background: var(--bg-inset);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 14px 16px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--text-dim);
-  overflow-x: auto;
-  white-space: pre;
-  margin-top: 10px;
-}
-.code-block .kw{ color: var(--rust-bright); }
-.code-block .str{ color: var(--verdigris); }
-.code-block .com{ color: var(--text-faint); font-style: italic; }
-
-.list-card{
-  background: var(--bg-panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 18px 20px;
-  margin-top: 16px;
-}
-.list-card ul{ margin: 8px 0 0; padding-left: 20px; }
-.list-card li{ color: var(--text-dim); font-size: 13.5px; margin-bottom: 4px; }
-
-.empty-state{
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 13px;
-}
-
-.highlight-match{
-  background: rgba(194,98,47,.35);
-  color: var(--text);
-  border-radius: 2px;
-}
+// server_scripts
+ServerEvents.recipes(event => {
+  event.shapeless('kubejs:special_stick', [
+    'minecraft:stick',
+    'minecraft:stick'
+  ])
+})`
+            },
+            {
+              type: "shaped",
+              output: "Litematica Stick",
+              id: "kubejs:litematica_stick",
+              size: 3,
+              grid: [" P "," P "," P "],
+              key: { "P": { name: "#minecraft:planks", icon: "oak_planks" } },
+              note: "Used to fix a typo where event.shapeed (extra 'e') was used instead of event.shaped — that silent-fail/typo pattern is worth remembering since KubeJS won't always throw an obvious error for it.",
+              configId: "kubejs:litematica_stick — use this exact string when referencing the item in a mod's config file (namespace:item_name)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "storage",
+      title: "Storage Recipes",
+      eyebrow: "Drawers & Backpacks",
+      subsections: [
+        {
+          title: "Storage Drawers",
+          recipes: [
+            {
+              type: "shaped",
+              output: "Controller",
+              id: "storagedrawers:controller",
+              size: 3,
+              grid: ["IDI","DCD","IDI"],
+              key: {
+                "I": { name: "Iron Ingot", icon: "iron_ingot" },
+                "D": { name: "#storagedrawers:drawers (any drawer)", icon: null },
+                "C": { name: "Chest", icon: "chest" }
+              },
+              note: "Demonstrates using a tag (#storagedrawers:drawers) as a recipe key — same # prefix syntax works for any tag, vanilla or modded."
+            }
+          ]
+        },
+        {
+          title: "Sophisticated Backpacks",
+          recipes: [
+            {
+              type: "shaped",
+              output: "Stack Upgrade: Starter Tier",
+              id: "sophisticatedbackpacks:stack_upgrade_starter_tier",
+              size: 3,
+              grid: ["BCB","CAC","BCB"],
+              key: {
+                "A": { name: "Upgrade Base", icon: null },
+                "B": { name: "Copper Ingot", icon: "copper_ingot" },
+                "C": { name: "Copper Block", icon: "copper_block" }
+              },
+              note: "Cheapened starting tier — copper instead of the original (more expensive) materials."
+            },
+            {
+              type: "shaped",
+              output: "Stack Upgrade: Tier 1 (from Starter)",
+              id: "sophisticatedbackpacks:stack_upgrade_tier_1_from_starter",
+              size: 3,
+              grid: ["BBB","BAB","BBB"],
+              key: {
+                "A": { name: "Stack Upgrade: Starter Tier", icon: null },
+                "B": { name: "Iron Ingot", icon: "iron_ingot" }
+              },
+              note: "This is an alternate recipe — same output item as the direct tier 1 recipe below, just a different crafting path (upgrading from starter tier instead of crafting from scratch). Both recipes can coexist."
+            },
+            {
+              type: "shaped",
+              output: "Stack Upgrade: Tier 1",
+              id: "sophisticatedbackpacks:stack_upgrade_tier_1",
+              size: 3,
+              grid: ["BCB","CAC","BCB"],
+              key: {
+                "A": { name: "Upgrade Base", icon: null },
+                "B": { name: "Iron Ingot", icon: "iron_ingot" },
+                "C": { name: "Iron Block", icon: "iron_block" }
+              },
+              note: "Direct tier 1 craft. Pattern continues for tiers 2–4 (apply same structure, scale up materials per tier)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "block-breaking",
+      title: "Block Breaking Changes",
+      eyebrow: "BlockEvents.broken",
+      subsections: [
+        {
+          title: null,
+          recipes: [
+            {
+              type: "break",
+              output: "Glass / Stained Glass / Panes — always drop",
+              id: "BlockEvents.broken (33 block IDs)",
+              icon: "glass",
+              note: "Tags are NOT accepted in BlockEvents.broken — only direct block IDs. Looped across plain glass, glass panes, and all 16 stained glass + stained glass pane colors. Originally tried event.level.spawnItemEntity(), which isn't a real KubeJS method — the correct call is event.block.popItem(Item.of(blockId)).",
+              code: `[
+  'minecraft:glass',
+  'minecraft:glass_pane',
+  'minecraft:white_stained_glass',
+  // ...all 16 stained glass colors
+  'minecraft:white_stained_glass_pane',
+  // ...all 16 stained glass pane colors
+].forEach(block => {
+  BlockEvents.broken(block, event => {
+    event.block.popItem(Item.of(block))
+  })
+})`
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
