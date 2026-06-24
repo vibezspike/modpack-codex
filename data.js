@@ -23,6 +23,7 @@ const CODEX = {
   // Simple running list — just add a string per idea. No need for icons, grids, or recipe IDs here,
   // this section is meant for quick notes on things you're planning but haven't built yet.
   upcomingChanges: [
+    "",
     "Hide the 16 duplicate wool milling recipes from JEI's recipe list (clutter cleanup)",
     "Apply the stack upgrade tier pattern to tiers 2, 3, and 4 for Sophisticated Backpacks",
     "Look into a config or workaround for Sable's magnet hose connector disconnecting on redstone power",
