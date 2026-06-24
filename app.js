@@ -85,9 +85,21 @@
   }
 
   // ---------- icon helper ----------
-  function iconImgHtml(iconName, altText, sizeClass){
-    if (!iconName) return '';
-    const urls = (typeof mcIconUrls === 'function') ? mcIconUrls(iconName) : null;
+  // Accepts either:
+  //   iconArg = "cobblestone"              -> vanilla item, looked up on the public CDN
+  //   iconArg = { path: "icons/x.png", customIcon: true } -> your own hosted image, used as-is
+  function iconImgHtml(iconArg, altText, sizeClass){
+    if (!iconArg) return '';
+
+    // custom self-hosted icon (no vanilla art available — Create items, modded-only items, etc.)
+    if (typeof iconArg === 'object' && iconArg.customIcon) {
+      const path = escapeHtml(iconArg.path);
+      return `<img src="${path}" alt="${escapeHtml(altText)}" class="item-icon ${sizeClass||''}"
+        onerror="this.onerror=null; this.style.display='none';">`;
+    }
+
+    // plain string -> vanilla item/block ID, resolved through the public asset mirror
+    const urls = (typeof mcIconUrls === 'function') ? mcIconUrls(iconArg) : null;
     if (!urls) return '';
     const primary = urls[0];
     const fallback = urls[1];
@@ -107,8 +119,9 @@
         html += `<div class="cslot empty"></div>`;
       } else {
         const name = typeof entry === 'string' ? entry : entry.name;
-        const icon = typeof entry === 'string' ? null : entry.icon;
-        const img = iconImgHtml(icon, name, 'icon-slot');
+        const iconArg = typeof entry === 'string' ? null
+          : (entry.customIcon ? { customIcon: true, path: entry.icon } : entry.icon);
+        const img = iconImgHtml(iconArg, name, 'icon-slot');
         const inner = img ? img : `<span class="cslot-textonly">${escapeHtml(name)}</span>`;
         html += `<div class="cslot filled ${img ? 'has-icon' : ''}" title="${escapeHtml(name)}">${inner}</div>`;
       }
@@ -120,8 +133,9 @@
   function renderFlow(recipe){
     const input = recipe.flowInput;
     const inputText = typeof input === 'string' ? input : input.text;
-    const inputIcon = typeof input === 'string' ? null : input.icon;
-    const inputImg = iconImgHtml(inputIcon, inputText, 'icon-pill');
+    const inputIconArg = typeof input === 'string' ? null
+      : (input.customIcon ? { customIcon: true, path: input.icon } : input.icon);
+    const inputImg = iconImgHtml(inputIconArg, inputText, 'icon-pill');
     const inputInner = inputImg ? inputImg : `<span>${escapeHtml(inputText)}</span>`;
 
     let html = `<div class="flow-row">`;
@@ -130,7 +144,8 @@
     html += `<div class="io-pill-group">`;
     recipe.flowOutputs.forEach(o => {
       const cls = o.guaranteed ? 'io-pill guaranteed' : 'io-pill';
-      const img = iconImgHtml(o.icon, o.text, 'icon-pill');
+      const oIconArg = o.customIcon ? { customIcon: true, path: o.icon } : o.icon;
+      const img = iconImgHtml(oIconArg, o.text, 'icon-pill');
       const nameHtml = img ? '' : `<span>${escapeHtml(o.text)}</span>`;
       let extras = '';
       if (o.qty) extras += ` <span class="qty">${escapeHtml(o.qty)}</span>`;
